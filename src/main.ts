@@ -5,9 +5,10 @@ import {
     sRGBEncoding,
     DirectionalLight,
     ColorRepresentation,
-    MeshBasicMaterial,
     SphereGeometry,
     Mesh,
+    ShaderMaterial,
+    TextureLoader,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
@@ -67,6 +68,31 @@ class LightSetup extends DirectionalLight {
 }
 
 
+const _VS = `
+    varying vec2 vertexUV;
+    varying vec3 vertexNormal;
+
+    void main() {
+        vertexUV = uv;
+        vertexNormal = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+`;
+
+const _FS = `
+    uniform sampler2D globeTexture;
+
+    varying vec2 vertexUV;
+    varying vec3 vertexNormal;
+
+    void main() {
+        float intensity = 1.05 - dot(vertexNormal, vec3(0.0, 0.0, 1.0));
+        vec3 atmosphere = vec3(0.3, 0.6, 1.0) * pow(intensity, 1.5);
+
+        gl_FragColor = vec4(atmosphere + texture2D(globeTexture, vertexUV).xyz, 1.0);
+    }
+`;
+
 function main () {
 
     //#region INIT
@@ -99,8 +125,14 @@ function main () {
     // Earth
     const sphere = new Mesh(
         new SphereGeometry( 50, 100, 100 ),
-        new MeshBasicMaterial( {
-            color: 0xffffff
+        new ShaderMaterial( {
+            vertexShader: _VS,
+            fragmentShader: _FS,
+            uniforms: {
+                globeTexture: {
+                    value: new TextureLoader().load( './assets/earth.jpg' ),
+                }
+            }
         } )
     );
     scene.add( sphere );
