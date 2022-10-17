@@ -9,6 +9,7 @@ import {
     Mesh,
     ShaderMaterial,
     TextureLoader,
+    MeshBasicMaterial,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
@@ -93,6 +94,7 @@ const _FS = `
     }
 `;
 
+
 function main () {
 
     //#region INIT
@@ -136,6 +138,18 @@ function main () {
         } )
     );
     scene.add( sphere );
+
+
+    // Stars
+    const star = new Mesh(
+        new SphereGeometry( 1, 5, 5 ),
+        new MeshBasicMaterial( {
+            color: 0xffffff
+        } ),
+    );
+
+
+
 
     //#endregion
 
