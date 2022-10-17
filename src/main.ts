@@ -5,6 +5,9 @@ import {
     sRGBEncoding,
     DirectionalLight,
     ColorRepresentation,
+    MeshBasicMaterial,
+    SphereGeometry,
+    Mesh,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
@@ -91,6 +94,18 @@ function main () {
     //#endregion
 
 
+    //#region workspace
+
+    // Earth
+    const sphere = new Mesh(
+        new SphereGeometry( 50, 100, 100 ),
+        new MeshBasicMaterial( {
+            color: 0xffffff
+        } )
+    );
+    scene.add( sphere );
+
+    //#endregion
 
 
     //#region Main loop and events
