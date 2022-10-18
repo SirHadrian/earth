@@ -1,5 +1,10 @@
 import {
+    TextureLoader,
+    Points,
+    Float32BufferAttribute,
+    BufferGeometry,
     PerspectiveCamera,
+    PointsMaterial,
     Scene,
     WebGLRenderer,
     sRGBEncoding,
@@ -8,8 +13,6 @@ import {
     SphereGeometry,
     Mesh,
     ShaderMaterial,
-    TextureLoader,
-    MeshBasicMaterial,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
@@ -63,35 +66,35 @@ class LightSetup extends DirectionalLight {
 
         super( color, intensity );
 
-        this.position.set( 0, 0, 10 );
+        this.position.set( 0, 0, 100 );
         scene.add( this );
     }
 }
 
 
 const _VS = `
-    varying vec2 vertexUV;
-    varying vec3 vertexNormal;
+varying vec2 vertexUV;
+varying vec3 vertexNormal;
 
-    void main() {
-        vertexUV = uv;
-        vertexNormal = normalize(normalMatrix * normal);
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
+void main() {
+    vertexUV = uv;
+    vertexNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
 `;
 
 const _FS = `
-    uniform sampler2D globeTexture;
+uniform sampler2D globeTexture;
 
-    varying vec2 vertexUV;
-    varying vec3 vertexNormal;
+varying vec2 vertexUV;
+varying vec3 vertexNormal;
 
-    void main() {
-        float intensity = 1.05 - dot(vertexNormal, vec3(0.0, 0.0, 1.0));
-        vec3 atmosphere = vec3(0.3, 0.6, 1.0) * pow(intensity, 1.5);
+void main() {
+    float intensity = 1.05 - dot(vertexNormal, vec3(0.0, 0.0, 1.0));
+    vec3 atmosphere = vec3(0.3, 0.6, 1.0) * pow(intensity, 1.5);
 
-        gl_FragColor = vec4(atmosphere + texture2D(globeTexture, vertexUV).xyz, 1.0);
-    }
+    gl_FragColor = vec4(atmosphere + texture2D(globeTexture, vertexUV).xyz, 1.0);
+}
 `;
 
 
@@ -141,14 +144,34 @@ function main () {
 
 
     // Stars
-    const star = new Mesh(
-        new SphereGeometry( 1, 5, 5 ),
-        new MeshBasicMaterial( {
-            color: 0xffffff
-        } ),
+    const material = new PointsMaterial({
+        size: 10,
+        map: new TextureLoader().load(
+            "./assets/star.png"
+        ),
+        transparent: true,
+    });
+
+    const geometry = new BufferGeometry();
+    const generatePoints=(num: number)=>{
+        const stars=[];
+        for (let i =0;i<num*3;++i){
+            const x=((Math.random()-0.5)*1000)+300;
+            const y=((Math.random()-0.5)*1000)+300;
+            const z=((Math.random()-0.5)*1000)+300;
+
+            stars.push(x,y,z);
+        }
+        return stars;
+    }
+
+    geometry.setAttribute(
+        "position",
+        new Float32BufferAttribute(generatePoints(300), 3)
     );
 
-
+    const stars= new Points(geometry, material);
+    scene.add(stars)
 
 
     //#endregion
