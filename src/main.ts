@@ -15,6 +15,8 @@ import {
     DoubleSide,
     AdditiveBlending,
     AmbientLight,
+    Group,
+    BackSide,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
@@ -36,7 +38,7 @@ class CameraSetup extends PerspectiveCamera {
 
         super( fov, aspectRatio, nearDistance, farDistance );
 
-        this.position.set( 0, 0, 200 );
+        this.position.set( 0, 0, 100 );
         this.lookAt( 0, 0, 0 );
     }
 }
@@ -62,13 +64,13 @@ class RendererSetup extends WebGLRenderer {
 }
 
 
-class LightSetup extends AmbientLight{
+class LightSetup extends AmbientLight {
 
     constructor( scene: Scene, color: ColorRepresentation, intensity: number ) {
 
         super( color, intensity );
 
-        this.position.set( 0, 0, 1000 );
+        this.position.set( 0, 0, 100 );
         scene.add( this );
     }
 }
@@ -99,7 +101,7 @@ void main() {
 }
 `;
 
-const _Atmosphere_VS=`
+const _Atmosphere_VS = `
 varying vec3 vertexNormal;
 
 void main() {
@@ -108,7 +110,7 @@ void main() {
 }
 `;
 
-const _Atmosphere_FS=`
+const _Atmosphere_FS = `
 varying vec3 vertexNormal;
 
 void main() {
@@ -147,8 +149,8 @@ function main () {
     //#region workspace
 
     // Earth
-    const sphere = new Mesh(
-        new SphereGeometry( 50, 100, 100 ),
+    const earth = new Mesh(
+        new SphereGeometry( 10, 50, 50 ),
         new ShaderMaterial( {
             vertexShader: _Earth_VS,
             fragmentShader: _Earth_FS,
@@ -159,51 +161,52 @@ function main () {
             }
         } )
     );
-    scene.add( sphere );
+    earth.rotateZ( -0.1 );
+    scene.add( earth );
 
     // Atmosphere
     const atmosphere = new Mesh(
-        new SphereGeometry( 50, 100, 100 ),
-        new ShaderMaterial({
+        new SphereGeometry( 10, 50, 50 ),
+        new ShaderMaterial( {
             vertexShader: _Atmosphere_VS,
             fragmentShader: _Atmosphere_FS,
-            side: DoubleSide,
             blending: AdditiveBlending,
-        })
+            side: BackSide,
+        } )
     );
-    atmosphere.scale.set(1.1, 1.1, 1.1);
+    atmosphere.scale.set( 1.1, 1.1, 1.1 );
     scene.add( atmosphere );
 
 
     // Stars
-    const material = new PointsMaterial({
+    const material = new PointsMaterial( {
         size: 10,
         map: new TextureLoader().load(
             "./assets/star.png"
         ),
         transparent: true,
-    });
+    } );
 
     const geometry = new BufferGeometry();
-    const generatePoints=(num: number)=>{
-        const stars=[];
-        for (let i =0;i<num*3;++i){
-            let x=(Math.random()-0.5)*2000;
-            let y=(Math.random()-0.5)*2000;
-            let z=-1*Math.random()*2000;
-            
-            stars.push(x,y,z);
+    const generatePoints = ( num: number ) => {
+        const stars = [];
+        for ( let i = 0; i < num * 3; ++i ) {
+            let x = ( Math.random() - 0.5 ) * 2000;
+            let y = ( Math.random() - 0.5 ) * 2000;
+            let z = -1 * Math.random() * 2000;
+
+            stars.push( x, y, z );
         }
         return stars;
     }
 
     geometry.setAttribute(
         "position",
-        new Float32BufferAttribute(generatePoints(1000), 3)
+        new Float32BufferAttribute( generatePoints( 1000 ), 3 )
     );
 
-    const stars= new Points(geometry, material);
-    scene.add(stars)
+    const stars = new Points( geometry, material );
+    scene.add( stars )
 
     //#endregion
 
@@ -220,7 +223,7 @@ function main () {
     // Animation loop
     const animate = () => {
 
-
+        earth.rotateY( 0.01 );
 
         renderer.render( scene, camera );
         requestAnimationFrame( animate );
