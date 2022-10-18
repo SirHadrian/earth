@@ -154,12 +154,12 @@ function main () {
 
     const geometry = new BufferGeometry();
     const generatePoints=(num: number)=>{
+        const offset=100;
         const stars=[];
         for (let i =0;i<num*3;++i){
-            const x=((Math.random()-0.5)*1000)+300;
-            const y=((Math.random()-0.5)*1000)+300;
-            const z=((Math.random()-0.5)*1000)+300;
-
+            let x=(Math.random()-0.5)*1000;
+            let y=(Math.random()-0.5)*1000;
+            let z=(Math.random()-0.5)*1000;
             stars.push(x,y,z);
         }
         return stars;
@@ -167,7 +167,7 @@ function main () {
 
     geometry.setAttribute(
         "position",
-        new Float32BufferAttribute(generatePoints(300), 3)
+        new Float32BufferAttribute(generatePoints(1000), 3)
     );
 
     const stars= new Points(geometry, material);
