@@ -13,6 +13,7 @@ import {
     SphereGeometry,
     Mesh,
     ShaderMaterial,
+    MeshBasicMaterial,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
@@ -142,6 +143,16 @@ function main () {
     );
     scene.add( sphere );
 
+    // Atmosphere
+    const atmosphere = new Mesh(
+        new SphereGeometry( 50, 100, 100 ),
+        new MeshBasicMaterial({
+            color: 0xffffff,
+        })
+    );
+    atmosphere.scale.set(1.1, 1.1, 1.1);
+    scene.add( atmosphere );
+
 
     // Stars
     const material = new PointsMaterial({
@@ -172,7 +183,6 @@ function main () {
 
     const stars= new Points(geometry, material);
     scene.add(stars)
-
 
     //#endregion
 
