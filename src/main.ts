@@ -154,12 +154,12 @@ function main () {
 
     const geometry = new BufferGeometry();
     const generatePoints=(num: number)=>{
-        const offset=100;
         const stars=[];
         for (let i =0;i<num*3;++i){
-            let x=(Math.random()-0.5)*1000;
-            let y=(Math.random()-0.5)*1000;
-            let z=(Math.random()-0.5)*1000;
+            let x=(Math.random()-0.5)*2000;
+            let y=(Math.random()-0.5)*2000;
+            let z=-1*Math.random()*2000;
+            
             stars.push(x,y,z);
         }
         return stars;
