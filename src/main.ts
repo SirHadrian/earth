@@ -8,12 +8,13 @@ import {
     Scene,
     WebGLRenderer,
     sRGBEncoding,
-    DirectionalLight,
     ColorRepresentation,
     SphereGeometry,
     Mesh,
     ShaderMaterial,
-    MeshBasicMaterial,
+    DoubleSide,
+    AdditiveBlending,
+    AmbientLight,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
@@ -61,19 +62,19 @@ class RendererSetup extends WebGLRenderer {
 }
 
 
-class LightSetup extends DirectionalLight {
+class LightSetup extends AmbientLight{
 
     constructor( scene: Scene, color: ColorRepresentation, intensity: number ) {
 
         super( color, intensity );
 
-        this.position.set( 0, 0, 100 );
+        this.position.set( 0, 0, 1000 );
         scene.add( this );
     }
 }
 
 
-const _VS = `
+const _Earth_VS = `
 varying vec2 vertexUV;
 varying vec3 vertexNormal;
 
@@ -84,7 +85,7 @@ void main() {
 }
 `;
 
-const _FS = `
+const _Earth_FS = `
 uniform sampler2D globeTexture;
 
 varying vec2 vertexUV;
@@ -98,6 +99,23 @@ void main() {
 }
 `;
 
+const _Atmosphere_VS=`
+varying vec3 vertexNormal;
+
+void main() {
+    vertexNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
+
+const _Atmosphere_FS=`
+varying vec3 vertexNormal;
+
+void main() {
+    float intensity = pow(0.7 - dot(vertexNormal, vec3(0, 0, 1.0)), 2.0);
+    gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0) * intensity;
+}
+`;
 
 function main () {
 
@@ -132,8 +150,8 @@ function main () {
     const sphere = new Mesh(
         new SphereGeometry( 50, 100, 100 ),
         new ShaderMaterial( {
-            vertexShader: _VS,
-            fragmentShader: _FS,
+            vertexShader: _Earth_VS,
+            fragmentShader: _Earth_FS,
             uniforms: {
                 globeTexture: {
                     value: new TextureLoader().load( './assets/earth.jpg' ),
@@ -146,8 +164,11 @@ function main () {
     // Atmosphere
     const atmosphere = new Mesh(
         new SphereGeometry( 50, 100, 100 ),
-        new MeshBasicMaterial({
-            color: 0xffffff,
+        new ShaderMaterial({
+            vertexShader: _Atmosphere_VS,
+            fragmentShader: _Atmosphere_FS,
+            side: DoubleSide,
+            blending: AdditiveBlending,
         })
     );
     atmosphere.scale.set(1.1, 1.1, 1.1);
