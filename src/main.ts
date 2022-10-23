@@ -12,10 +12,8 @@ import {
     SphereGeometry,
     Mesh,
     ShaderMaterial,
-    DoubleSide,
     AdditiveBlending,
     AmbientLight,
-    Group,
     BackSide,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
