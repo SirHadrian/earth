@@ -162,6 +162,24 @@ function main () {
     earth.rotateZ( -0.1 );
     scene.add( earth );
 
+    // Clouds
+    const clouds = new Mesh(
+        new SphereGeometry( 10, 50, 50 ),
+        new ShaderMaterial( {
+            vertexShader: _Earth_VS,
+            fragmentShader: _Earth_FS,
+            blending: AdditiveBlending,
+            transparent: true,
+            uniforms: {
+                globeTexture: {
+                    value: new TextureLoader().load( './assets/clouds.jpg' ),
+                }
+            }
+        } )
+    );
+    clouds.scale.set( 1.01, 1.01, 1.01 );
+    scene.add( clouds );
+
     // Atmosphere
     const atmosphere = new Mesh(
         new SphereGeometry( 10, 50, 50 ),
@@ -222,6 +240,7 @@ function main () {
     const animate = () => {
 
         earth.rotateY( 0.01 );
+        clouds.rotateY( 0.01 );
 
         renderer.render( scene, camera );
         requestAnimationFrame( animate );
