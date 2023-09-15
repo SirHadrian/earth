@@ -17,6 +17,9 @@ import {
     BackSide,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import Earth from './assets/earth.jpg';
+import Clouds from './assets/clouds.jpg'
+import Star from './assets/star.png'
 
 
 class SceneSetup extends Scene {
@@ -32,44 +35,44 @@ class SceneSetup extends Scene {
 
 class CameraSetup extends PerspectiveCamera {
 
-    constructor( fov: number, aspectRatio: number, nearDistance: number, farDistance: number ) {
+    constructor(fov: number, aspectRatio: number, nearDistance: number, farDistance: number) {
 
-        super( fov, aspectRatio, nearDistance, farDistance );
+        super(fov, aspectRatio, nearDistance, farDistance);
 
-        this.position.set( 0, 0, 100 );
-        this.lookAt( 0, 0, 0 );
+        this.position.set(0, 0, 100);
+        this.lookAt(0, 0, 0);
     }
 }
 
 
 class RendererSetup extends WebGLRenderer {
 
-    constructor( configs: object, camera: CameraSetup ) {
+    constructor(configs: object, camera: CameraSetup) {
 
-        super( configs );
+        super(configs);
 
-        this.setSize( window.innerWidth, window.innerHeight );
-        this.setPixelRatio( window.devicePixelRatio );
+        this.setSize(window.innerWidth, window.innerHeight);
+        this.setPixelRatio(window.devicePixelRatio);
         this.outputEncoding = sRGBEncoding;
 
         // Inject renderer to DOM
-        const target = document.getElementById( "app" );
-        target?.appendChild( this.domElement );
+        const target = document.getElementById("app");
+        target?.appendChild(this.domElement);
 
         // OrbitControls
-        new OrbitControls( camera, this.domElement );
+        new OrbitControls(camera, this.domElement);
     }
 }
 
 
 class LightSetup extends AmbientLight {
 
-    constructor( scene: Scene, color: ColorRepresentation, intensity: number ) {
+    constructor(scene: Scene, color: ColorRepresentation, intensity: number) {
 
-        super( color, intensity );
+        super(color, intensity);
 
-        this.position.set( 0, 0, 100 );
-        scene.add( this );
+        this.position.set(0, 0, 100);
+        scene.add(this);
     }
 }
 
@@ -117,7 +120,7 @@ void main() {
 }
 `;
 
-function main () {
+function main() {
 
     //#region INIT
     // Create Scene
@@ -132,7 +135,7 @@ function main () {
     );
 
     // Create Renderer
-    const renderer = new RendererSetup( { antialiasing: true }, camera );
+    const renderer = new RendererSetup({ antialiasing: true }, camera);
 
     // Create light source
     const light = new LightSetup(
@@ -140,7 +143,7 @@ function main () {
         0xffffff,
         1
     );
-    scene.add( light );
+    scene.add(light);
     //#endregion
 
 
@@ -148,81 +151,81 @@ function main () {
 
     // Earth
     const earth = new Mesh(
-        new SphereGeometry( 10, 50, 50 ),
-        new ShaderMaterial( {
+        new SphereGeometry(10, 50, 50),
+        new ShaderMaterial({
             vertexShader: _Earth_VS,
             fragmentShader: _Earth_FS,
             uniforms: {
                 globeTexture: {
-                    value: new TextureLoader().load( './assets/earth.jpg' ),
+                    value: new TextureLoader().load(Earth),
                 }
             }
-        } )
+        })
     );
-    earth.rotateZ( -0.1 );
-    scene.add( earth );
+    earth.rotateZ(-0.1);
+    scene.add(earth);
 
     // Clouds
     const clouds = new Mesh(
-        new SphereGeometry( 10, 50, 50 ),
-        new ShaderMaterial( {
+        new SphereGeometry(10, 50, 50),
+        new ShaderMaterial({
             vertexShader: _Earth_VS,
             fragmentShader: _Earth_FS,
             blending: AdditiveBlending,
             transparent: true,
             uniforms: {
                 globeTexture: {
-                    value: new TextureLoader().load( './assets/clouds.jpg' ),
+                    value: new TextureLoader().load(Clouds),
                 }
             }
-        } )
+        })
     );
-    clouds.scale.set( 1.01, 1.01, 1.01 );
-    scene.add( clouds );
+    clouds.scale.set(1.01, 1.01, 1.01);
+    scene.add(clouds);
 
     // Atmosphere
     const atmosphere = new Mesh(
-        new SphereGeometry( 10, 50, 50 ),
-        new ShaderMaterial( {
+        new SphereGeometry(10, 50, 50),
+        new ShaderMaterial({
             vertexShader: _Atmosphere_VS,
             fragmentShader: _Atmosphere_FS,
             blending: AdditiveBlending,
             side: BackSide,
-        } )
+        })
     );
-    atmosphere.scale.set( 1.1, 1.1, 1.1 );
-    scene.add( atmosphere );
+    atmosphere.scale.set(1.1, 1.1, 1.1);
+    scene.add(atmosphere);
 
 
     // Stars
-    const material = new PointsMaterial( {
+    const material = new PointsMaterial({
         size: 10,
         map: new TextureLoader().load(
-            "./assets/star.png"
+            Star
         ),
         transparent: true,
-    } );
+    });
 
     const geometry = new BufferGeometry();
-    const generatePoints = ( num: number ) => {
+    const generatePoints = (num: number) => {
         const stars = [];
-        for ( let i = 0; i < num * 3; ++i ) {
-            let x = ( Math.random() - 0.5 ) * 2000;
-            let y = ( Math.random() - 0.5 ) * 2000;
+        for (let i = 0; i < num * 3; ++i) {
+            let x = (Math.random() - 0.5) * 2000;
+            let y = (Math.random() - 0.5) * 2000;
             let z = -1 * Math.random() * 2000;
 
-            stars.push( x, y, z );
+            stars.push(x, y, z);
         }
         return stars;
     }
 
     geometry.setAttribute(
         "position",
-        new Float32BufferAttribute( generatePoints( 1000 ), 3 )
+        new Float32BufferAttribute(generatePoints(1000), 3)
     );
 
-    const stars = new Points( geometry, material );
-    scene.add( stars )
+    const stars = new Points(geometry, material);
+    scene.add(stars)
 
     //#endregion
 
@@ -232,18 +235,18 @@ function main () {
     const resize = () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
-        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.setSize(window.innerWidth, window.innerHeight);
     }
-    window.addEventListener( "resize", resize, false );
+    window.addEventListener("resize", resize, false);
 
     // Animation loop
     const animate = () => {
 
-        earth.rotateY( 0.01 );
-        clouds.rotateY( 0.01 );
+        earth.rotateY(0.01);
+        clouds.rotateY(0.01);
 
-        renderer.render( scene, camera );
-        requestAnimationFrame( animate );
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
     }
     animate();
     //#endregion
