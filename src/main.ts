@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import Earth from './assets/planets/earthmap4k.jpg'
 import Clouds from './assets/planets/fair_clouds_4k.png'
+import Stars from './assets/planets/starry_background.jpg'
 
 
 class SceneSetup extends THREE.Scene {
@@ -47,7 +48,7 @@ class RendererSetup extends THREE.WebGLRenderer {
 }
 
 
-class LightSetup extends THREE.AmbientLight {
+class LightSetup extends THREE.DirectionalLight {
 
   constructor(scene: THREE.Scene, color: THREE.ColorRepresentation, intensity: number) {
 
@@ -109,15 +110,36 @@ function main() {
   const scene = new SceneSetup()
 
   // Create Camera
-  const camera = new CameraSetup(
-    50, // FOV
-    window.innerWidth / window.innerHeight, // Aspect ratio
-    0.1, // Near: distance objects apear on camera
-    1000, // Far: distance objects disapear from camera
+  // const camera = new CameraSetup(
+  //   50, // FOV
+  //   window.innerWidth / window.innerHeight, // Aspect ratio
+  //   0.1, // Near: distance objects apear on camera
+  //   1000, // Far: distance objects disapear from camera
+  // )
+
+  const camera = new THREE.OrthographicCamera(
+    -window.innerWidth,
+    window.innerWidth,
+    window.innerHeight,
+    -window.innerHeight,
+    -1000, 1000
   )
+  camera.position.z = 0;
 
   // Create Renderer
-  const renderer = new RendererSetup({ antialiasing: true }, camera)
+  // const renderer = new RendererSetup({ antialiasing: true }, camera)
+
+  const renderer = new THREE.WebGLRenderer()
+  renderer.setSize(window.innerWidth, window.innerHeight)
+  renderer.setPixelRatio(window.devicePixelRatio)
+  renderer.outputColorSpace = THREE.SRGBColorSpace
+
+  // Inject renderer to DOM
+  const target = document.getElementById("app")
+  target?.appendChild(renderer.domElement)
+
+  // OrbitControls
+  new OrbitControls(camera, renderer.domElement)
 
   // Create light source
   const light = new LightSetup(
@@ -125,15 +147,15 @@ function main() {
     0xffffff,
     1
   )
+  light.name = 'directional'
   scene.add(light)
   //#endregion
 
 
   //#region workspace
-
   // Earth
-  const earthGeo = new THREE.SphereGeometry(15, 30, 30)
-  const earthMesh = new THREE.MeshBasicMaterial()
+  const earthGeo = new THREE.SphereGeometry(215, 30, 30)
+  const earthMesh = new THREE.MeshPhongMaterial()
 
   earthMesh.map = new THREE.TextureLoader().load(Earth)
 
@@ -144,8 +166,8 @@ function main() {
   scene.add(earth)
 
   // Clouds
-  const cloudsGeo = new THREE.SphereGeometry(15, 30, 30)
-  const cloudsMesh = new THREE.MeshBasicMaterial()
+  const cloudsGeo = new THREE.SphereGeometry(215, 30, 30)
+  const cloudsMesh = new THREE.MeshPhongMaterial()
 
   cloudsMesh.map = new THREE.TextureLoader().load(Clouds)
   cloudsMesh.transparent = true
@@ -155,6 +177,18 @@ function main() {
   clouds.scale.setScalar(1.01)
   clouds.rotateZ(-0.1)
   scene.add(clouds)
+
+  const ambient = new THREE.AmbientLight(0xffffff, 1)
+  scene.add(ambient)
+
+  const starsGeo = new THREE.PlaneGeometry(1, 1)
+  const starsMat = new THREE.MeshBasicMaterial()
+  starsMat.map = new THREE.TextureLoader().load(Stars)
+
+  const stars = new THREE.Mesh(starsGeo, starsMat)
+  stars.position.z = -100;
+  stars.scale.set(window.innerWidth * 2, window.innerHeight * 2, 1);
+  scene.add(stars)
 
 
   // const clouds = new Mesh(
@@ -224,7 +258,7 @@ function main() {
   //#region Main loop and events
   // On window resize
   const resize = () => {
-    camera.aspect = window.innerWidth / window.innerHeight
+    // camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
     renderer.setSize(window.innerWidth, window.innerHeight)
   }
