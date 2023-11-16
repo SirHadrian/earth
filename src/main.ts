@@ -62,7 +62,7 @@ function main() {
     0.1, // Near: distance objects apear on camera
     1000, // Far: distance objects disapear from camera
   )
-  camera.position.set(0, 0, 50)
+  camera.position.set(25, 10, 63)
   camera.lookAt(0, 0, 0)
 
   // Create Renderer
@@ -78,15 +78,15 @@ function main() {
   // OrbitControls
   const cameraControl = new OrbitControls(camera, renderer.domElement)
 
-  // Create light source
-  const ambientLight = new THREE.AmbientLight(0x111111);
-  ambientLight.name='ambient';
-  scene.add(ambientLight);
+  const ambientLight = new THREE.AmbientLight(0x111111, 4);
+  ambientLight.name = 'ambient';
+  ambientLight.position.set(50, 0, 0)
+  scene.add(ambientLight)
 
-  const directionalLight = new THREE.DirectionalLight (0xffffff, 1)
-  directionalLight.position.set(100, 10, 50)
-  directionalLight.name = 'directional'
-  scene.add(directionalLight)
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 4);
+  directionalLight.position.set(100, 0, 10)
+  directionalLight.name = 'directional';
+  scene.add(directionalLight);
 
 
   const texLoader = new THREE.TextureLoader()
@@ -96,30 +96,34 @@ function main() {
 
   earthMat.map = texLoader.load(Earth)
   earthMat.map.colorSpace = THREE.SRGBColorSpace
-  earthMat.normalMap = texLoader.load(EarthNormalMap)
-  // earthMat.normalMap.colorSpace = THREE.SRGBColorSpace
   earthMat.specularMap = texLoader.load(EarthSpecularMap)
   // earthMat.specularMap.colorSpace = THREE.SRGBColorSpace
   earthMat.specular = new THREE.Color(0x262626)
+  earthMat.normalMap = texLoader.load(EarthNormalMap)
+  // earthMat.normalMap.colorSpace = THREE.SRGBColorSpace
 
   const earth = new THREE.Mesh(earthGeo, earthMat)
 
   earth.name = 'earth'
-  earth.rotateZ(-0.1)
+  earth.rotateZ(0.1)
+  earth.rotateX(0.5)
   scene.add(earth)
 
   // Clouds
   const cloudsGeo = new THREE.SphereGeometry(15, 60, 60)
-  const cloudsMesh = new THREE.MeshPhongMaterial()
+  const cloudsMat = new THREE.MeshPhongMaterial()
 
-  cloudsMesh.map = new THREE.TextureLoader().load(Clouds)
-  cloudsMesh.map.colorSpace = THREE.SRGBColorSpace
-  cloudsMesh.transparent = true
+  cloudsMat.map = new THREE.TextureLoader().load(Clouds)
+  cloudsMat.map.colorSpace = THREE.SRGBColorSpace
+  cloudsMat.transparent = true
+  cloudsMat.opacity = 0.5;
+  cloudsMat.blending = THREE.AdditiveBlending;
 
-  const clouds = new THREE.Mesh(cloudsGeo, cloudsMesh)
+  const clouds = new THREE.Mesh(cloudsGeo, cloudsMat)
 
   clouds.scale.setScalar(1.01)
-  clouds.rotateZ(-0.1)
+  clouds.rotateZ(0.1)
+  clouds.rotateX(0.5)
   scene.add(clouds)
 
   // Background
@@ -131,7 +135,7 @@ function main() {
   const stars = new THREE.Mesh(starsGeo, starsMat)
   stars.position.z = -900;
   stars.scale.set(window.innerWidth * 2, window.innerHeight * 2, 1);
-  scene.add(stars)
+  // scene.add(stars)
 
 
   // const clouds = new Mesh(
@@ -163,38 +167,6 @@ function main() {
   // )
   // atmosphere.scale.set(1.1, 1.1, 1.1)
   // scene.add(atmosphere)
-  //
-  //
-  // // Stars
-  // const material = new PointsMaterial({
-  //   size: 10,
-  //   map: new TextureLoader().load(
-  //     Star
-  //   ),
-  //   transparent: true,
-  // })
-  //
-  // const geometry = new BufferGeometry()
-  // const generatePoints = (num: number) => {
-  //   const stars = []
-  //   for (let i = 0 i < num * 3; ++i) {
-  //     let x = (Math.random() - 0.5) * 2000
-  //     let y = (Math.random() - 0.5) * 2000
-  //     let z = -1 * Math.random() * 2000
-  //
-  //     stars.push(x, y, z)
-  //   }
-  //   return stars
-  // }
-  //
-  // geometry.setAttribute(
-  //   "position",
-  //   new Float32BufferAttribute(generatePoints(1000), 3)
-  // )
-  //
-  // const stars = new Points(geometry, material)
-  // scene.add(stars)
-  //
 
   // On window resize
   const resize = () => {
@@ -207,16 +179,15 @@ function main() {
   // Animation loop
   const animate = () => {
 
-    cameraControl.update() 
-
     earth.rotateY(0.001)
     clouds.rotateY(0.001)
 
+    cameraControl.update() 
     renderer.render(scene, camera)
     requestAnimationFrame(animate)
   }
   animate()
 }
-main()
+window.onload = main
 
 
