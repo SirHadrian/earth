@@ -1,64 +1,11 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+
 import Earth from './assets/planets/earthmap4k.jpg'
+import EarthNormalMap from './assets/planets/earth_normalmap_flat4k.jpg'
+import EarthSpecularMap from './assets/planets/earthspec4k.jpg'
 import Clouds from './assets/planets/fair_clouds_4k.png'
 import Stars from './assets/planets/starry_background.jpg'
-
-
-class SceneSetup extends THREE.Scene {
-
-  constructor() {
-
-    super()
-
-  }
-
-}
-
-
-class CameraSetup extends THREE.PerspectiveCamera {
-
-  constructor(fov: number, aspectRatio: number, nearDistance: number, farDistance: number) {
-
-    super(fov, aspectRatio, nearDistance, farDistance)
-
-    this.position.set(0, 0, 100)
-    this.lookAt(0, 0, 0)
-  }
-}
-
-
-class RendererSetup extends THREE.WebGLRenderer {
-
-  constructor(configs: object, camera: CameraSetup) {
-
-    super(configs)
-
-    this.setSize(window.innerWidth, window.innerHeight)
-    this.setPixelRatio(window.devicePixelRatio)
-    this.outputColorSpace = THREE.SRGBColorSpace
-
-    // Inject renderer to DOM
-    const target = document.getElementById("app")
-    target?.appendChild(this.domElement)
-
-    // OrbitControls
-    new OrbitControls(camera, this.domElement)
-  }
-}
-
-
-class LightSetup extends THREE.DirectionalLight {
-
-  constructor(scene: THREE.Scene, color: THREE.ColorRepresentation, intensity: number) {
-
-    super(color, intensity)
-
-    this.position.set(0, 0, 100)
-    scene.add(this)
-  }
-}
-
 
 const _Earth_VS = `
 varying vec2 vertexUV
@@ -105,68 +52,58 @@ void main() {
 
 function main() {
 
-  //#region INIT
   // Create Scene
-  const scene = new SceneSetup()
+  const scene = new THREE.Scene()
 
   // Create Camera
-  // const camera = new CameraSetup(
-  //   50, // FOV
-  //   window.innerWidth / window.innerHeight, // Aspect ratio
-  //   0.1, // Near: distance objects apear on camera
-  //   1000, // Far: distance objects disapear from camera
-  // )
-
-  const camera = new THREE.OrthographicCamera(
-    -window.innerWidth,
-    window.innerWidth,
-    window.innerHeight,
-    -window.innerHeight,
-    -1000, 1000
+  const camera = new THREE.PerspectiveCamera(
+    50, // FOV
+    window.innerWidth / window.innerHeight, // Aspect ratio
+    0.1, // Near: distance objects apear on camera
+    1000, // Far: distance objects disapear from camera
   )
-  camera.position.z = 0;
+  camera.position.set(0, 0, 50)
+  camera.lookAt(0, 0, 0)
 
   // Create Renderer
-  // const renderer = new RendererSetup({ antialiasing: true }, camera)
-
   const renderer = new THREE.WebGLRenderer()
   renderer.setSize(window.innerWidth, window.innerHeight)
   renderer.setPixelRatio(window.devicePixelRatio)
+  renderer.setClearColor(0x000000, 1.0);
+  renderer.shadowMap.enabled = true;
   renderer.outputColorSpace = THREE.SRGBColorSpace
-
   // Inject renderer to DOM
   const target = document.getElementById("app")
   target?.appendChild(renderer.domElement)
-
   // OrbitControls
-  new OrbitControls(camera, renderer.domElement)
+  const cameraControl = new OrbitControls(camera, renderer.domElement)
 
   // Create light source
-  const light = new LightSetup(
-    scene,
-    0xffffff,
+  const light = new THREE.AmbientLight(
+    0xcccccc,
     1
   )
+  light.position.set(0, 0, 100)
   light.name = 'directional'
   scene.add(light)
-  //#endregion
 
-
-  //#region workspace
   // Earth
-  const earthGeo = new THREE.SphereGeometry(215, 30, 30)
-  const earthMesh = new THREE.MeshPhongMaterial()
+  const earthGeo = new THREE.SphereGeometry(15, 30, 30)
+  const earthMat = new THREE.MeshPhongMaterial()
 
-  earthMesh.map = new THREE.TextureLoader().load(Earth)
+  earthMat.map = new THREE.TextureLoader().load(Earth)
+  earthMat.normalMap = new THREE.TextureLoader().load(EarthNormalMap)
+  earthMat.specularMap = new THREE.TextureLoader().load(EarthSpecularMap)
+  earthMat.specular = new THREE.Color(0x262626)
 
-  const earth = new THREE.Mesh(earthGeo, earthMesh)
+  const earth = new THREE.Mesh(earthGeo, earthMat)
 
   earth.name = 'earth'
   earth.rotateZ(-0.1)
   scene.add(earth)
 
   // Clouds
-  const cloudsGeo = new THREE.SphereGeometry(215, 30, 30)
+  const cloudsGeo = new THREE.SphereGeometry(15, 30, 30)
   const cloudsMesh = new THREE.MeshPhongMaterial()
 
   cloudsMesh.map = new THREE.TextureLoader().load(Clouds)
@@ -178,17 +115,15 @@ function main() {
   clouds.rotateZ(-0.1)
   scene.add(clouds)
 
-  const ambient = new THREE.AmbientLight(0xffffff, 1)
-  scene.add(ambient)
-
+  // Background
   const starsGeo = new THREE.PlaneGeometry(1, 1)
-  const starsMat = new THREE.MeshBasicMaterial()
+  const starsMat = new THREE.MeshBasicMaterial({side: THREE.DoubleSide})
   starsMat.map = new THREE.TextureLoader().load(Stars)
 
   const stars = new THREE.Mesh(starsGeo, starsMat)
-  stars.position.z = -100;
+  stars.position.z = -900;
   stars.scale.set(window.innerWidth * 2, window.innerHeight * 2, 1);
-  scene.add(stars)
+  // scene.add(stars)
 
 
   // const clouds = new Mesh(
@@ -252,13 +187,10 @@ function main() {
   // const stars = new Points(geometry, material)
   // scene.add(stars)
   //
-  //#endregion
 
-
-  //#region Main loop and events
   // On window resize
   const resize = () => {
-    // camera.aspect = window.innerWidth / window.innerHeight
+    camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
     renderer.setSize(window.innerWidth, window.innerHeight)
   }
@@ -267,14 +199,15 @@ function main() {
   // Animation loop
   const animate = () => {
 
-    earth.rotateY(0.01)
-    clouds.rotateY(0.01)
+    cameraControl.update() 
+
+    earth.rotateY(0.001)
+    clouds.rotateY(0.001)
 
     renderer.render(scene, camera)
     requestAnimationFrame(animate)
   }
   animate()
-  //#endregion
 }
 main()
 
