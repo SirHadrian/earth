@@ -57,7 +57,7 @@ function main() {
 
   // Create Camera
   const camera = new THREE.PerspectiveCamera(
-    50, // FOV
+    45, // FOV
     window.innerWidth / window.innerHeight, // Aspect ratio
     0.1, // Near: distance objects apear on camera
     1000, // Far: distance objects disapear from camera
@@ -71,7 +71,7 @@ function main() {
   renderer.setPixelRatio(window.devicePixelRatio)
   renderer.setClearColor(0x000000, 1.0);
   renderer.shadowMap.enabled = true;
-  renderer.outputColorSpace = THREE.SRGBColorSpace
+  // renderer.outputColorSpace = THREE.SRGBColorSpace
   // Inject renderer to DOM
   const target = document.getElementById("app")
   target?.appendChild(renderer.domElement)
@@ -79,21 +79,27 @@ function main() {
   const cameraControl = new OrbitControls(camera, renderer.domElement)
 
   // Create light source
-  const light = new THREE.AmbientLight(
-    0xcccccc,
-    1
-  )
-  light.position.set(0, 0, 100)
-  light.name = 'directional'
-  scene.add(light)
+  const ambientLight = new THREE.AmbientLight(0x111111);
+  ambientLight.name='ambient';
+  scene.add(ambientLight);
 
+  const directionalLight = new THREE.DirectionalLight (0xffffff, 1)
+  directionalLight.position.set(100, 10, 50)
+  directionalLight.name = 'directional'
+  scene.add(directionalLight)
+
+
+  const texLoader = new THREE.TextureLoader()
   // Earth
-  const earthGeo = new THREE.SphereGeometry(15, 30, 30)
+  const earthGeo = new THREE.SphereGeometry(15, 60, 60)
   const earthMat = new THREE.MeshPhongMaterial()
 
-  earthMat.map = new THREE.TextureLoader().load(Earth)
-  earthMat.normalMap = new THREE.TextureLoader().load(EarthNormalMap)
-  earthMat.specularMap = new THREE.TextureLoader().load(EarthSpecularMap)
+  earthMat.map = texLoader.load(Earth)
+  earthMat.map.colorSpace = THREE.SRGBColorSpace
+  earthMat.normalMap = texLoader.load(EarthNormalMap)
+  // earthMat.normalMap.colorSpace = THREE.SRGBColorSpace
+  earthMat.specularMap = texLoader.load(EarthSpecularMap)
+  // earthMat.specularMap.colorSpace = THREE.SRGBColorSpace
   earthMat.specular = new THREE.Color(0x262626)
 
   const earth = new THREE.Mesh(earthGeo, earthMat)
@@ -103,10 +109,11 @@ function main() {
   scene.add(earth)
 
   // Clouds
-  const cloudsGeo = new THREE.SphereGeometry(15, 30, 30)
+  const cloudsGeo = new THREE.SphereGeometry(15, 60, 60)
   const cloudsMesh = new THREE.MeshPhongMaterial()
 
   cloudsMesh.map = new THREE.TextureLoader().load(Clouds)
+  cloudsMesh.map.colorSpace = THREE.SRGBColorSpace
   cloudsMesh.transparent = true
 
   const clouds = new THREE.Mesh(cloudsGeo, cloudsMesh)
@@ -119,11 +126,12 @@ function main() {
   const starsGeo = new THREE.PlaneGeometry(1, 1)
   const starsMat = new THREE.MeshBasicMaterial({side: THREE.DoubleSide})
   starsMat.map = new THREE.TextureLoader().load(Stars)
+  starsMat.map.colorSpace = THREE.SRGBColorSpace
 
   const stars = new THREE.Mesh(starsGeo, starsMat)
   stars.position.z = -900;
   stars.scale.set(window.innerWidth * 2, window.innerHeight * 2, 1);
-  // scene.add(stars)
+  scene.add(stars)
 
 
   // const clouds = new Mesh(
